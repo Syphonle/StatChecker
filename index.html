@@ -38,15 +38,18 @@ button.expand-btn:hover{background:#1e3a5a;}
 .loading{text-align:center;padding:40px;color:#6b7280;font-size:14px;}
 .spinner{display:inline-block;width:18px;height:18px;border:2px solid #2a2e3a;border-top-color:#2563eb;border-radius:50%;animation:spin 0.8s linear infinite;margin-right:8px;vertical-align:middle;}
 @keyframes spin{to{transform:rotate(360deg);}}
-.cards-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:14px;margin-bottom:20px;}
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-bottom:20px;}
 .card{background:#181b23;border:1px solid #2a2e3a;border-radius:10px;padding:14px;}
 .card-header{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
 .avatar{width:42px;height:42px;border-radius:50%;object-fit:cover;background:#2a2e3a;flex-shrink:0;}
 .avatar-fb{width:42px;height:42px;border-radius:50%;background:#2a2e3a;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:500;color:#6b7280;flex-shrink:0;}
 .pname{font-size:15px;font-weight:500;color:#e8ecf5;}
 .plevel{font-size:12px;color:#6b7280;}
-.grade-badge{font-size:22px;font-weight:700;width:48px;height:48px;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;transition:transform 0.1s;}
-.grade-badge:hover{transform:scale(1.08);}
+.grades-wrap{display:flex;flex-direction:column;gap:4px;flex-shrink:0;}
+.grade-badge{font-size:16px;font-weight:700;width:52px;height:40px;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:transform 0.1s;line-height:1;}
+.grade-badge:hover{transform:scale(1.06);}
+.grade-label{font-size:9px;font-weight:400;opacity:0.7;margin-top:1px;}
+.grade-score{font-size:10px;font-weight:400;opacity:0.8;}
 .rank-badge{font-size:12px;padding:3px 8px;border-radius:5px;background:#23283a;display:inline-block;margin-bottom:8px;}
 .stats-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px;}
 .stat{background:#0e1015;border-radius:6px;padding:7px;text-align:center;}
@@ -75,21 +78,19 @@ button.expand-btn:hover{background:#1e3a5a;}
 .graph-card{background:#181b23;border:1px solid #2a2e3a;border-radius:10px;padding:14px;}
 .graph-title{font-size:13px;color:#9ca3af;margin-bottom:12px;}
 .chart-wrap{position:relative;width:100%;}
-
-/* Modal */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);display:flex;align-items:center;justify-content:center;z-index:1000;padding:16px;}
 .modal{background:#181b23;border:1px solid #2a2e3a;border-radius:12px;width:100%;max-width:780px;max-height:90vh;overflow-y:auto;padding:20px;}
 .modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
 .modal-title{font-size:16px;font-weight:500;color:#e8ecf5;}
 .modal-close{background:none;border:none;color:#6b7280;font-size:20px;padding:4px 8px;line-height:1;}
 .modal-close:hover{color:#e8ecf5;}
-.modal-grade{font-size:28px;font-weight:700;padding:6px 14px;border-radius:8px;margin-right:10px;}
 .modal-charts-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px;}
 .modal-chart-card{background:#0e1015;border-radius:8px;padding:12px;}
 .modal-chart-title{font-size:12px;color:#9ca3af;margin-bottom:8px;}
 .benchmark-legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
 .bench-item{display:flex;align-items:center;gap:4px;font-size:11px;color:#6b7280;}
 .bench-dot{width:8px;height:8px;border-radius:50%;}
+.mode-tag{font-size:11px;padding:2px 7px;border-radius:4px;margin-bottom:10px;display:inline-block;}
 </style>
 </head>
 <body>
@@ -159,21 +160,20 @@ button.expand-btn:hover{background:#1e3a5a;}
       <div class="graph-card"><div class="graph-title">CS per minute</div><div class="chart-wrap" style="height:220px"><canvas id="chartCS" role="img" aria-label="CS per minute"></canvas></div></div>
       <div class="graph-card"><div class="graph-title">Damage per minute</div><div class="chart-wrap" style="height:220px"><canvas id="chartDPM" role="img" aria-label="Damage per minute"></canvas></div></div>
       <div class="graph-card"><div class="graph-title">KDA</div><div class="chart-wrap" style="height:220px"><canvas id="chartKDA" role="img" aria-label="KDA"></canvas></div></div>
-      <div class="graph-card"><div class="graph-title">Win rate %</div><div class="chart-wrap" style="height:220px"><canvas id="chartWR" role="img" aria-label="Win rate"></canvas></div></div>
       <div class="graph-card"><div class="graph-title">Kill participation %</div><div class="chart-wrap" style="height:220px"><canvas id="chartKP" role="img" aria-label="Kill participation"></canvas></div></div>
       <div class="graph-card"><div class="graph-title">Vision score per game</div><div class="chart-wrap" style="height:220px"><canvas id="chartVS" role="img" aria-label="Vision score"></canvas></div></div>
       <div class="graph-card"><div class="graph-title">Avg deaths per game</div><div class="chart-wrap" style="height:220px"><canvas id="chartDeaths" role="img" aria-label="Deaths per game"></canvas></div></div>
-      <div class="graph-card"><div class="graph-title">Overall score</div><div class="chart-wrap" style="height:220px"><canvas id="chartScore" role="img" aria-label="Overall score"></canvas></div></div>
+      <div class="graph-card"><div class="graph-title">Ranked score</div><div class="chart-wrap" style="height:220px"><canvas id="chartScoreR" role="img" aria-label="Ranked score"></canvas></div></div>
+      <div class="graph-card"><div class="graph-title">Casual score</div><div class="chart-wrap" style="height:220px"><canvas id="chartScoreC" role="img" aria-label="Casual score"></canvas></div></div>
     </div>
   </div>
 </div>
 
-<!-- Modal -->
 <div class="modal-overlay" id="modalOverlay" style="display:none" onclick="closeModal(event)">
   <div class="modal" id="modal">
     <div class="modal-header">
       <div style="display:flex;align-items:center;gap:10px">
-        <span class="modal-grade" id="modalGrade"></span>
+        <span id="modalGrade" style="font-size:22px;font-weight:700;padding:6px 14px;border-radius:8px;margin-right:10px;"></span>
         <div>
           <div class="modal-title" id="modalName"></div>
           <div style="font-size:12px;color:#6b7280" id="modalRole"></div>
@@ -187,16 +187,16 @@ button.expand-btn:hover{background:#1e3a5a;}
 
 <script>
 const COLORS=["#60a5fa","#34d399","#fbbf24","#f87171","#c084fc"];
-const ROLE_LABELS={TOP:"Top",JUNGLE:"Jungle",MIDDLE:"Mid",BOTTOM:"Bot",UTILITY:"Support","OTHER":"Other"};
+const ROLE_LABELS={TOP:"Top",JUNGLE:"Jungle",MIDDLE:"Mid",BOTTOM:"Bot",UTILITY:"Support",OTHER:"Other"};
+const RANKED_QUEUES=[420];
+const CASUAL_QUEUES=[400,430];
 
-// Rank benchmarks for each stat
 const RANK_BENCHMARKS={
-  kda:    {Iron:1.5,Bronze:1.8,Silver:2.1,Gold:2.5,Platinum:2.9,Emerald:3.3,Diamond:3.8,Master:4.2,Challenger:4.5},
-  cspm:   {Iron:3.5,Bronze:4.0,Silver:4.5,Gold:5.2,Platinum:5.8,Emerald:6.2,Diamond:6.6,Master:6.9,Challenger:7.0},
-  dpm:    {Iron:300,Bronze:400,Silver:500,Gold:620,Platinum:720,Emerald:800,Diamond:880,Master:950,Challenger:1000},
-  kp:     {Iron:40,Bronze:45,Silver:50,Gold:55,Platinum:58,Emerald:61,Diamond:64,Master:67,Challenger:70},
-  vision: {Iron:12,Bronze:15,Silver:18,Gold:22,Platinum:26,Emerald:29,Diamond:32,Master:34,Challenger:35},
-  wr:     {Iron:45,Bronze:47,Silver:49,Gold:51,Platinum:52,Emerald:53,Diamond:54,Master:55,Challenger:57},
+  kda:{Iron:1.5,Bronze:1.8,Silver:2.1,Gold:2.5,Platinum:2.9,Emerald:3.3,Diamond:3.8,Master:4.2,Challenger:4.5},
+  cspm:{Iron:3.5,Bronze:4.0,Silver:4.5,Gold:5.2,Platinum:5.8,Emerald:6.2,Diamond:6.6,Master:6.9,Challenger:7.0},
+  dpm:{Iron:300,Bronze:400,Silver:500,Gold:620,Platinum:720,Emerald:800,Diamond:880,Master:950,Challenger:1000},
+  kp:{Iron:40,Bronze:45,Silver:50,Gold:55,Platinum:58,Emerald:61,Diamond:64,Master:67,Challenger:70},
+  vision:{Iron:12,Bronze:15,Silver:18,Gold:22,Platinum:26,Emerald:29,Diamond:32,Master:34,Challenger:35},
   vsSupport:{Iron:20,Bronze:25,Silver:30,Gold:36,Platinum:42,Emerald:48,Diamond:54,Master:60,Challenger:65},
 };
 const RANK_COLORS={Iron:"#8e7f6e",Bronze:"#cd7f32",Silver:"#9aa4af",Gold:"#c89b3c",Platinum:"#4fc99f",Emerald:"#34d399",Diamond:"#5fc4e8",Master:"#c084fc",Challenger:"#fbbf24"};
@@ -214,25 +214,39 @@ function tierColor(t){
   return"#a78bfa";
 }
 function masteryLabel(lvl){if(lvl>=7)return"✦✦✦";if(lvl>=6)return"✦✦";if(lvl>=5)return"✦";return"";}
-function detectRole(rb){if(!rb||!rb.length)return"OTHER";return [...rb].sort((a,b)=>b.games-a.games)[0].role||"OTHER";}
+function detectRole(rb){if(!rb||!rb.length)return"OTHER";return[...rb].sort((a,b)=>b.games-a.games)[0].role||"OTHER";}
 
-function calcScore(p){
-  const role=detectRole(p.roleBreakdown);
+function calcScore(matches,roleBreakdown){
+  if(!matches||!matches.length)return 0;
+  const role=detectRole(roleBreakdown);
+  const n=matches.length;
+  const tK=matches.reduce((a,m)=>a+m.kills,0);
+  const tD=matches.reduce((a,m)=>a+m.deaths,0);
+  const tA=matches.reduce((a,m)=>a+m.assists,0);
+  const tCSPM=matches.reduce((a,m)=>a+m.cspm,0);
+  const tKP=matches.reduce((a,m)=>a+m.kp,0);
+  const tVS=matches.reduce((a,m)=>a+m.visionScore,0);
+  const tDPM=matches.reduce((a,m)=>a+m.dpm,0);
+  const avgKDA=tD===0?parseFloat((tK+tA).toFixed(2)):parseFloat(((tK+tA)/tD).toFixed(2));
+  const avgCSPM=parseFloat((tCSPM/n).toFixed(2));
+  const avgKP=Math.round(tKP/n);
+  const avgVS=Math.round(tVS/n);
+  const avgDPM=Math.round(tDPM/n);
   let s=0;
   if(role==="UTILITY"){
-    s+=Math.min((p.avgKDA/3.5)*25,25);
-    s+=Math.min((p.avgVS/55)*40,40);
-    s+=Math.min((p.avgKP/55)*35,35);
+    s+=Math.min((avgKDA/3.5)*25,25);
+    s+=Math.min((avgVS/55)*40,40);
+    s+=Math.min((avgKP/55)*35,35);
   }else if(role==="JUNGLE"){
-    s+=Math.min((p.avgKDA/4.5)*30,30);
-    s+=Math.min((p.avgCSPM/5.0)*20,20);
-    s+=Math.min((p.avgKP/70)*30,30);
-    s+=Math.min((p.avgVS/35)*20,20);
+    s+=Math.min((avgKDA/4.5)*30,30);
+    s+=Math.min((avgCSPM/5.0)*20,20);
+    s+=Math.min((avgKP/70)*30,30);
+    s+=Math.min((avgVS/35)*20,20);
   }else{
-    s+=Math.min((p.avgKDA/4.5)*30,30);
-    s+=Math.min((p.avgCSPM/7.0)*25,25);
-    s+=Math.min((p.avgKP/75)*25,25);
-    s+=Math.min((p.avgDPM/1000)*20,20);
+    s+=Math.min((avgKDA/4.5)*30,30);
+    s+=Math.min((avgCSPM/7.0)*25,25);
+    s+=Math.min((avgKP/75)*25,25);
+    s+=Math.min((avgDPM/1000)*20,20);
   }
   return Math.round(s);
 }
@@ -254,94 +268,66 @@ function toggle(id){
   const btn=document.getElementById("btn-"+id);
   if(btn)btn.querySelector("span:last-child").textContent=el.classList.contains("open")?"▲":"▼";
 }
-
-// Modal charts
-let modalChartInstances=[];
 function closeModal(e){if(e.target===document.getElementById("modalOverlay"))document.getElementById("modalOverlay").style.display="none";}
 
-function openScoreModal(idx){
-  const p=window._players[idx];
-  if(!p||p._error)return;
-  const{g,col,bg}=scoreGrade(p.score);
+let modalChartInstances=[];
+function openScoreModal(idx,mode){
+  const p=window._players[idx];if(!p||p._error)return;
+  const matches=mode==="ranked"?p.rankedMatches:p.casualMatches;
+  const score=mode==="ranked"?p.rankedScore:p.casualScore;
+  const{g,col,bg}=scoreGrade(score);
   const role=detectRole(p.roleBreakdown);
-  const roleLabel=ROLE_LABELS[role]||role;
+  const modeLabel=mode==="ranked"?"Ranked Solo/Duo":"Casual SR";
 
-  document.getElementById("modalGrade").textContent=g+" "+p.score;
+  document.getElementById("modalGrade").textContent=`${g} ${score}`;
   document.getElementById("modalGrade").style.cssText=`color:${col};background:${bg};font-size:22px;font-weight:700;padding:6px 14px;border-radius:8px;margin-right:10px;`;
   document.getElementById("modalName").textContent=p.displayName;
-  document.getElementById("modalRole").textContent=`${roleLabel} · last 10 games`;
+  document.getElementById("modalRole").textContent=`${ROLE_LABELS[role]||role} · ${modeLabel} · last ${matches.length} games`;
 
   modalChartInstances.forEach(c=>c.destroy());
   modalChartInstances=[];
 
-  const matches=p.matches||[];
   const gameLabels=matches.map((_,i)=>`G${i+1}`);
-
   const isSupport=role==="UTILITY";
-  const isJungle=role==="JUNGLE";
 
   const statConfigs=[
     {title:"KDA per game",data:matches.map(m=>m.kda),benchKey:"kda",color:"#60a5fa",unit:""},
     {title:"CS per minute",data:matches.map(m=>m.cspm),benchKey:"cspm",color:"#34d399",unit:"",skip:isSupport},
-    {title:"Damage per minute",data:matches.map(m=>m.dpm),benchKey:"dpm",color:"#f87171",unit:""},
+    {title:"Damage per minute",data:matches.map(m=>m.dpm),benchKey:"dpm",color:"#f87171",unit:"",skip:isSupport},
     {title:"Kill participation %",data:matches.map(m=>m.kp),benchKey:"kp",color:"#fbbf24",unit:"%"},
     {title:"Vision score",data:matches.map(m=>m.visionScore),benchKey:isSupport?"vsSupport":"vision",color:"#c084fc",unit:""},
-    {title:"Win/Loss",data:matches.map(m=>m.result==="WIN"?1:0),color:"#9ca3af",unit:"",isBinary:true},
+    {title:"Win / Loss",data:matches.map(m=>m.result==="WIN"?1:0),color:"#9ca3af",unit:"",isBinary:true},
   ].filter(s=>!s.skip);
 
   const container=document.getElementById("modalCharts");
   container.innerHTML="";
-
   statConfigs.forEach((cfg,ci)=>{
     const cardDiv=document.createElement("div");
     cardDiv.className="modal-chart-card";
-    const cid=`modal-chart-${ci}-${idx}`;
+    const cid=`modal-chart-${ci}-${idx}-${mode}`;
     cardDiv.innerHTML=`<div class="modal-chart-title">${cfg.title}</div><div style="position:relative;height:160px"><canvas id="${cid}" role="img" aria-label="${cfg.title}"></canvas></div>${cfg.benchKey?`<div class="benchmark-legend" id="bench-${cid}"></div>`:""}`;
     container.appendChild(cardDiv);
-
     setTimeout(()=>{
       const ctx=document.getElementById(cid);if(!ctx)return;
-      const datasets=[{
-        label:cfg.title,data:cfg.data,
-        borderColor:cfg.color,backgroundColor:cfg.color+"33",
-        borderWidth:2,pointRadius:3,tension:0.3,fill:true,
-      }];
-
+      const datasets=[{label:cfg.title,data:cfg.data,borderColor:cfg.color,backgroundColor:cfg.color+"33",borderWidth:2,pointRadius:3,tension:0.3,fill:true}];
       if(cfg.benchKey&&RANK_BENCHMARKS[cfg.benchKey]){
         const benches=RANK_BENCHMARKS[cfg.benchKey];
         const showRanks=["Iron","Gold","Diamond","Challenger"];
         showRanks.forEach(rank=>{
           if(!benches[rank])return;
-          datasets.push({
-            label:rank,data:Array(gameLabels.length).fill(benches[rank]),
-            borderColor:RANK_COLORS[rank],borderWidth:1,borderDash:[4,4],
-            pointRadius:0,fill:false,
-          });
+          datasets.push({label:rank,data:Array(gameLabels.length).fill(benches[rank]),borderColor:RANK_COLORS[rank],borderWidth:1,borderDash:[4,4],pointRadius:0,fill:false});
         });
         const legend=document.getElementById(`bench-${cid}`);
-        if(legend){
-          legend.innerHTML=showRanks.map(r=>`<span class="bench-item"><span class="bench-dot" style="background:${RANK_COLORS[r]}"></span>${r}: ${RANK_BENCHMARKS[cfg.benchKey][r]}${cfg.unit}</span>`).join("");
-        }
+        if(legend)legend.innerHTML=showRanks.map(r=>`<span class="bench-item"><span class="bench-dot" style="background:${RANK_COLORS[r]}"></span>${r}: ${RANK_BENCHMARKS[cfg.benchKey][r]}${cfg.unit}</span>`).join("");
       }
-
       const chart=new Chart(ctx,{
         type:cfg.isBinary?"bar":"line",
         data:{labels:gameLabels,datasets},
-        options:{
-          responsive:true,maintainAspectRatio:false,
-          plugins:{legend:{display:false},tooltip:{callbacks:{label:v=>`${v.dataset.label}: ${v.raw}${cfg.unit}`}}},
-          scales:{
-            x:{ticks:{color:"#6b7280",font:{size:10}},grid:{color:"rgba(255,255,255,0.04)"}},
-            y:{ticks:{color:"#6b7280",font:{size:10}},grid:{color:"rgba(255,255,255,0.04)"},beginAtZero:cfg.isBinary,
-               ...(cfg.isBinary?{min:0,max:1,ticks:{callback:v=>v===1?"Win":"Loss"}}:{})
-            }
-          }
-        }
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:v=>`${v.dataset.label}: ${v.raw}${cfg.unit}`}}},scales:{x:{ticks:{color:"#6b7280",font:{size:10}},grid:{color:"rgba(255,255,255,0.04)"}},y:{ticks:{color:"#6b7280",font:{size:10}},grid:{color:"rgba(255,255,255,0.04)"},beginAtZero:cfg.isBinary,...(cfg.isBinary?{min:0,max:1,ticks:{callback:v=>v===1?"Win":"Loss"}}:{})}}}
       });
       modalChartInstances.push(chart);
     },50);
   });
-
   document.getElementById("modalOverlay").style.display="flex";
 }
 
@@ -355,27 +341,9 @@ async function riotFetch(url,apiKey){
   return res.json();
 }
 
-async function fetchSummoner(name,apiKey,platform,routing){
-  let puuid,summonerData,displayName;
-  const parts=name.trim().split("#");
-  if(parts.length===2){
-    const acct=await riotFetch(`https://${routing}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodeURIComponent(parts[0])}/${encodeURIComponent(parts[1])}`,apiKey);
-    puuid=acct.puuid;displayName=`${acct.gameName}#${acct.tagLine}`;
-    summonerData=await riotFetch(`https://${platform}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${puuid}`,apiKey);
-  }else{
-    summonerData=await riotFetch(`https://${platform}.api.riotgames.com/lol/summoner/v4/summoners/by-name/${encodeURIComponent(name.trim())}`,apiKey);
-    puuid=summonerData.puuid;displayName=summonerData.name;
-  }
-  const[ranked,masteryRaw,matchIds]=await Promise.all([
-    riotFetch(`https://${platform}.api.riotgames.com/lol/league/v4/entries/by-puuid/${puuid}`,apiKey),
-    riotFetch(`https://${platform}.api.riotgames.com/lol/champion-mastery/v4/champion-masteries/by-puuid/${puuid}/top?count=5`,apiKey),
-    riotFetch(`https://${routing}.api.riotgames.com/lol/match/v5/matches/by-puuid/${puuid}/ids?start=0&count=10`,apiKey),
-  ]);
-  const solo=ranked.find(e=>e.queueType==="RANKED_SOLO_5x5")||null;
-  const masteryMap={};
-  masteryRaw.forEach(m=>{masteryMap[m.championId]={level:m.championLevel,points:m.championPoints};});
-  const matchDetails=await Promise.all(matchIds.slice(0,10).map(id=>riotFetch(`https://${routing}.api.riotgames.com/lol/match/v5/matches/${id}`,apiKey)));
-  const matches=matchDetails.map(m=>{
+function processMatches(matchDetails,puuid,filterQueues){
+  return matchDetails.map(m=>{
+    if(filterQueues&&!filterQueues.includes(m.info.queueId))return null;
     const p=m.info.participants.find(x=>x.puuid===puuid);if(!p)return null;
     const dur=m.info.gameDuration/60||1;
     const teamKills=m.info.participants.filter(x=>x.teamId===p.teamId).reduce((a,x)=>a+x.kills,0);
@@ -388,11 +356,49 @@ async function fetchSummoner(name,apiKey,platform,routing){
       cspm:parseFloat(((p.totalMinionsKilled+p.neutralMinionsKilled)/dur).toFixed(2)),
       dpm:Math.round(p.totalDamageDealtToChampions/dur),
       kda:parseFloat(kda.toFixed(2)),kp,visionScore:p.visionScore||0,
-      role:p.teamPosition||"",matchId:m.metadata.matchId,
+      role:p.teamPosition||"",matchId:m.metadata.matchId,queueId:m.info.queueId,
     };
   }).filter(Boolean);
+}
+
+async function fetchSummoner(name,apiKey,platform,routing){
+  let puuid,summonerData,displayName;
+  const parts=name.trim().split("#");
+  if(parts.length===2){
+    const acct=await riotFetch(`https://${routing}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodeURIComponent(parts[0])}/${encodeURIComponent(parts[1])}`,apiKey);
+    puuid=acct.puuid;displayName=`${acct.gameName}#${acct.tagLine}`;
+    summonerData=await riotFetch(`https://${platform}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${puuid}`,apiKey);
+  }else{
+    summonerData=await riotFetch(`https://${platform}.api.riotgames.com/lol/summoner/v4/summoners/by-name/${encodeURIComponent(name.trim())}`,apiKey);
+    puuid=summonerData.puuid;displayName=summonerData.name;
+  }
+
+  const[ranked,masteryRaw,rankedIds,casualIds]=await Promise.all([
+    riotFetch(`https://${platform}.api.riotgames.com/lol/league/v4/entries/by-puuid/${puuid}`,apiKey),
+    riotFetch(`https://${platform}.api.riotgames.com/lol/champion-mastery/v4/champion-masteries/by-puuid/${puuid}/top?count=5`,apiKey),
+    riotFetch(`https://${routing}.api.riotgames.com/lol/match/v5/matches/by-puuid/${puuid}/ids?queue=420&start=0&count=10`,apiKey),
+    riotFetch(`https://${routing}.api.riotgames.com/lol/match/v5/matches/by-puuid/${puuid}/ids?queue=400&start=0&count=5`,apiKey),
+  ]);
+
+  const solo=ranked.find(e=>e.queueType==="RANKED_SOLO_5x5")||null;
+  const masteryMap={};masteryRaw.forEach(m=>{masteryMap[m.championId]={level:m.championLevel,points:m.championPoints};});
+
+  // Also fetch blind queue for casual
+  const blindIds=await riotFetch(`https://${routing}.api.riotgames.com/lol/match/v5/matches/by-puuid/${puuid}/ids?queue=430&start=0&count=5`,apiKey);
+  const allCasualIds=[...new Set([...casualIds,...blindIds])].slice(0,10);
+
+  const[rankedDetails,casualDetails]=await Promise.all([
+    Promise.all(rankedIds.slice(0,10).map(id=>riotFetch(`https://${routing}.api.riotgames.com/lol/match/v5/matches/${id}`,apiKey))),
+    Promise.all(allCasualIds.map(id=>riotFetch(`https://${routing}.api.riotgames.com/lol/match/v5/matches/${id}`,apiKey))),
+  ]);
+
+  const rankedMatches=processMatches(rankedDetails,puuid,null);
+  const casualMatches=processMatches(casualDetails,puuid,null);
+  const allMatches=[...rankedMatches,...casualMatches];
+
+  // Role breakdown from all matches
   const roleMap={};
-  matches.forEach(m=>{
+  allMatches.forEach(m=>{
     const r=m.role||"OTHER";
     if(!roleMap[r])roleMap[r]={games:0,wins:0,kills:0,deaths:0,assists:0,cspm:0,dpm:0};
     roleMap[r].games++;if(m.result==="WIN")roleMap[r].wins++;
@@ -404,13 +410,17 @@ async function fetchSummoner(name,apiKey,platform,routing){
     kda:s.deaths===0?parseFloat((s.kills+s.assists).toFixed(1)):parseFloat(((s.kills+s.assists)/s.deaths).toFixed(1)),
     cspm:parseFloat((s.cspm/s.games).toFixed(1)),dpm:Math.round(s.dpm/s.games),
   })).sort((a,b)=>b.games-a.games);
-  const n=matches.length||1;
-  const wins=matches.filter(m=>m.result==="WIN").length;
-  const tK=matches.reduce((a,m)=>a+m.kills,0),tD=matches.reduce((a,m)=>a+m.deaths,0),tA=matches.reduce((a,m)=>a+m.assists,0);
-  const tCS=matches.reduce((a,m)=>a+m.cs,0),tCSPM=matches.reduce((a,m)=>a+m.cspm,0);
-  const tKP=matches.reduce((a,m)=>a+m.kp,0),tVS=matches.reduce((a,m)=>a+m.visionScore,0),tDPM=matches.reduce((a,m)=>a+m.dpm,0);
+
+  // Stats from ranked for card display
+  const src=rankedMatches.length?rankedMatches:allMatches;
+  const n=src.length||1;
+  const tK=src.reduce((a,m)=>a+m.kills,0),tD=src.reduce((a,m)=>a+m.deaths,0),tA=src.reduce((a,m)=>a+m.assists,0);
+  const tCS=src.reduce((a,m)=>a+m.cs,0),tCSPM=src.reduce((a,m)=>a+m.cspm,0);
+  const tKP=src.reduce((a,m)=>a+m.kp,0),tVS=src.reduce((a,m)=>a+m.visionScore,0),tDPM=src.reduce((a,m)=>a+m.dpm,0);
+  const wins=src.filter(m=>m.result==="WIN").length;
+
   const champMap={};
-  matches.forEach(m=>{
+  src.forEach(m=>{
     if(!champMap[m.champion])champMap[m.champion]={games:0,wins:0,kills:0,deaths:0,assists:0,championId:m.championId};
     champMap[m.champion].games++;if(m.result==="WIN")champMap[m.champion].wins++;
     champMap[m.champion].kills+=m.kills;champMap[m.champion].deaths+=m.deaths;champMap[m.champion].assists+=m.assists;
@@ -420,24 +430,27 @@ async function fetchSummoner(name,apiKey,platform,routing){
     winRate:Math.round((s.wins/s.games)*100),
     kda:s.deaths===0?parseFloat((s.kills+s.assists).toFixed(2)):parseFloat(((s.kills+s.assists)/s.deaths).toFixed(2)),
   }));
-  const avgKDA=tD===0?parseFloat((tK+tA).toFixed(2)):parseFloat(((tK+tA)/tD).toFixed(2));
-  const avgCSPM=parseFloat((tCSPM/n).toFixed(2));
-  const avgKP=Math.round(tKP/n),avgVS=Math.round(tVS/n),avgDPM=Math.round(tDPM/n);
-  const score=calcScore({winRate:Math.round((wins/n)*100),avgKDA,avgCSPM,avgKP,avgDPM,avgVS,roleBreakdown});
+
+  const rankedScore=calcScore(rankedMatches,roleBreakdown);
+  const casualScore=calcScore(casualMatches,roleBreakdown);
+
   return{
     displayName,level:summonerData.summonerLevel,profileIconId:summonerData.profileIconId,
     puuid,platform,routing,apiKey,solo,
     winRate:Math.round((wins/n)*100),wins,losses:n-wins,
-    avgKDA,avgKills:parseFloat((tK/n).toFixed(1)),avgDeaths:parseFloat((tD/n).toFixed(1)),avgAssists:parseFloat((tA/n).toFixed(1)),
-    avgCSPM,avgKP,avgVS,avgDPM,avgCS:Math.round(tCS/n),
-    topChamps,matches,roleBreakdown,score,
+    avgKDA:tD===0?parseFloat((tK+tA).toFixed(2)):parseFloat(((tK+tA)/tD).toFixed(2)),
+    avgKills:parseFloat((tK/n).toFixed(1)),avgDeaths:parseFloat((tD/n).toFixed(1)),avgAssists:parseFloat((tA/n).toFixed(1)),
+    avgCSPM:parseFloat((tCSPM/n).toFixed(2)),avgKP:Math.round(tKP/n),avgVS:Math.round(tVS/n),
+    avgDPM:Math.round(tDPM/n),avgCS:Math.round(tCS/n),
+    topChamps,roleBreakdown,rankedMatches,casualMatches,rankedScore,casualScore,
   };
 }
 
 function renderCard(p,idx){
   const rankLabel=p.solo?`${p.solo.tier} ${p.solo.rank} — ${p.solo.leaguePoints} LP`:"Unranked";
   const playerColor=COLORS[idx%COLORS.length];
-  const{g,col,bg}=scoreGrade(p.score);
+  const rGrade=scoreGrade(p.rankedScore);
+  const cGrade=scoreGrade(p.casualScore);
   const champsHtml=p.topChamps.map(c=>{
     const m=c.mastery;
     const mLabel=m?`<span class="mastery-pip">${masteryLabel(m.level)} M${m.level}</span>`:"";
@@ -459,13 +472,24 @@ function renderCard(p,idx){
       </div>
     </div>`).join("");
   const tlId=`tl-${idx}`,roleId=`role-${idx}`;
+  const noRanked=!p.rankedMatches.length;
+  const noCasual=!p.casualMatches.length;
   return`<div class="card">
     <div class="card-header">
       <img class="avatar" src="https://ddragon.leagueoflegends.com/cdn/14.10.1/img/profileicon/${p.profileIconId}.png" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" alt="">
       <div class="avatar-fb" style="display:none;border:2px solid ${playerColor}">${p.displayName[0].toUpperCase()}</div>
       <div style="flex:1"><div class="pname" style="color:${playerColor}">${p.displayName}</div><div class="plevel">Level ${p.level}</div></div>
-      <div class="grade-badge" style="color:${col};background:${bg}" onclick="openScoreModal(${idx})" title="Click for detailed stats">
-        ${g}<div style="font-size:11px;font-weight:400;opacity:0.8">${p.score}</div>
+      <div class="grades-wrap">
+        <div class="grade-badge" style="color:${rGrade.col};background:${rGrade.bg}" onclick="openScoreModal(${idx},'ranked')" title="Ranked stats">
+          ${noRanked?"—":rGrade.g}
+          <div class="grade-label">Ranked</div>
+          ${noRanked?"":` <div class="grade-score">${p.rankedScore}</div>`}
+        </div>
+        <div class="grade-badge" style="color:${cGrade.col};background:${cGrade.bg}" onclick="openScoreModal(${idx},'casual')" title="Casual SR stats">
+          ${noCasual?"—":cGrade.g}
+          <div class="grade-label">Casual</div>
+          ${noCasual?"":` <div class="grade-score">${p.casualScore}</div>`}
+        </div>
       </div>
     </div>
     <div class="rank-badge" style="color:${tierColor(p.solo?.tier)}">${rankLabel}</div>
@@ -501,8 +525,9 @@ async function toggleTimeline(idx){
   if(!wrap.classList.contains("open")||tlLoaded[idx])return;
   tlLoaded[idx]=true;
   const p=window._players[idx];
+  const matches=[...p.rankedMatches,...p.casualMatches].slice(0,5);
   try{
-    const details=await Promise.all(p.matches.slice(0,5).map(m=>riotFetch(`https://${p.routing}.api.riotgames.com/lol/match/v5/matches/${m.matchId}/timeline`,p.apiKey)));
+    const details=await Promise.all(matches.map(m=>riotFetch(`https://${p.routing}.api.riotgames.com/lol/match/v5/matches/${m.matchId}/timeline`,p.apiKey)));
     const dByMin={},kByMin={};
     details.forEach(tl=>{
       const pid=tl.metadata.participants.indexOf(p.puuid)+1;
@@ -547,11 +572,11 @@ function renderGraphs(players){
   makeBar("chartCS",labels,players.map(p=>p.avgCSPM));
   makeBar("chartDPM",labels,players.map(p=>p.avgDPM));
   makeBar("chartKDA",labels,players.map(p=>p.avgKDA));
-  makeBar("chartWR",labels,players.map(p=>p.winRate),"%");
   makeBar("chartKP",labels,players.map(p=>p.avgKP),"%");
   makeBar("chartVS",labels,players.map(p=>p.avgVS));
   makeBar("chartDeaths",labels,players.map(p=>p.avgDeaths));
-  makeBar("chartScore",labels,players.map(p=>p.score));
+  makeBar("chartScoreR",labels,players.map(p=>p.rankedScore));
+  makeBar("chartScoreC",labels,players.map(p=>p.casualScore));
 }
 
 async function fetchAll(){
