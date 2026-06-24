@@ -449,8 +449,6 @@ async function fetchSummoner(name,apiKey,platform,routing){
 function renderCard(p,idx){
   const rankLabel=p.solo?`${p.solo.tier} ${p.solo.rank} — ${p.solo.leaguePoints} LP`:"Unranked";
   const playerColor=COLORS[idx%COLORS.length];
-  const rGrade=scoreGrade(p.rankedScore);
-  const cGrade=scoreGrade(p.casualScore);
   const champsHtml=p.topChamps.map(c=>{
     const m=c.mastery;
     const mLabel=m?`<span class="mastery-pip">${masteryLabel(m.level)} M${m.level}</span>`:"";
@@ -479,18 +477,7 @@ function renderCard(p,idx){
       <img class="avatar" src="https://ddragon.leagueoflegends.com/cdn/14.10.1/img/profileicon/${p.profileIconId}.png" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" alt="">
       <div class="avatar-fb" style="display:none;border:2px solid ${playerColor}">${p.displayName[0].toUpperCase()}</div>
       <div style="flex:1"><div class="pname" style="color:${playerColor}">${p.displayName}</div><div class="plevel">Level ${p.level}</div></div>
-      <div class="grades-wrap">
-        <div class="grade-badge" style="color:${rGrade.col};background:${rGrade.bg}" onclick="openScoreModal(${idx},'ranked')" title="Ranked stats">
-          ${noRanked?"—":rGrade.g}
-          <div class="grade-label">Ranked</div>
-          ${noRanked?"":` <div class="grade-score">${p.rankedScore}</div>`}
-        </div>
-        <div class="grade-badge" style="color:${cGrade.col};background:${cGrade.bg}" onclick="openScoreModal(${idx},'casual')" title="Casual SR stats">
-          ${noCasual?"—":cGrade.g}
-          <div class="grade-label">Casual</div>
-          ${noCasual?"":` <div class="grade-score">${p.casualScore}</div>`}
-        </div>
-      </div>
+
     </div>
     <div class="rank-badge" style="color:${tierColor(p.solo?.tier)}">${rankLabel}</div>
     ${p.solo?`<div style="font-size:11px;color:#6b7280;margin-bottom:8px">${p.solo.wins}W ${p.solo.losses}L this season</div>`:""}
@@ -575,8 +562,7 @@ function renderGraphs(players){
   makeBar("chartKP",labels,players.map(p=>p.avgKP),"%");
   makeBar("chartVS",labels,players.map(p=>p.avgVS));
   makeBar("chartDeaths",labels,players.map(p=>p.avgDeaths));
-  makeBar("chartScoreR",labels,players.map(p=>p.rankedScore));
-  makeBar("chartScoreC",labels,players.map(p=>p.casualScore));
+
 }
 
 async function fetchAll(){
