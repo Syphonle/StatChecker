@@ -19,8 +19,14 @@ button.primary:hover{background:#1d4ed8;}
 button.primary:disabled{opacity:0.5;cursor:not-allowed;}
 button.danger{color:#f87171;border-color:#7f1d1d;}
 button.danger:hover{background:#2d1515;}
-button.expand-btn{background:#1a2535;border-color:#2a3a5a;color:#60a5fa;font-size:12px;padding:5px 10px;margin-top:8px;width:100%;text-align:left;display:flex;justify-content:space-between;align-items:center;}
-button.expand-btn:hover{background:#1e3a5a;}
+button.train-btn{background:#1a2535;border-color:#2a3a5a;color:#a78bfa;font-size:12px;padding:5px 10px;margin-top:8px;width:100%;text-align:left;display:flex;justify-content:space-between;align-items:center;}
+button.train-btn:hover{background:#1e2a40;}
+.training-plan{display:none;margin-top:8px;border-top:1px solid #2a2e3a;padding-top:10px;}
+.training-plan.open{display:block;}
+.training-loading{font-size:12px;color:#6b7280;text-align:center;padding:16px 0;}
+.focus-area{margin-bottom:14px;background:#0e1015;border-radius:8px;padding:12px;}
+.focus-title{font-size:13px;font-weight:500;color:#a78bfa;margin-bottom:6px;display:flex;align-items:center;gap:6px;}
+.focus-body{font-size:12px;color:#9ca3af;line-height:1.7;white-space:pre-wrap;}
 .panel{background:#181b23;border:1px solid #2a2e3a;border-radius:10px;padding:14px 16px;margin-bottom:16px;}
 .panel-title{font-size:13px;color:#6b7280;margin-bottom:12px;}
 .setup-grid{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;}
@@ -525,6 +531,11 @@ function renderCard(p,idx){
         <canvas id="tl-chart-${idx}" role="img" aria-label="Death timeline"></canvas>
       </div>
     </div>
+    <button class="train-btn" id="btn-train-${idx}" onclick="toggleTraining(${idx})"><span>🎓 Personalized training plan</span><span>▼</span></button>
+    <div class="training-plan" id="train-${idx}">
+      <div class="training-loading" id="train-loading-${idx}"><span class="spinner"></span> Generating your training plan…</div>
+      <div id="train-content-${idx}"></div>
+    </div>
   </div>`;
 }
 
@@ -568,6 +579,91 @@ async function toggleTimeline(idx){
   }catch(e){document.getElementById(`tl-loading-${idx}`).textContent=`Could not load: ${e.message}`;}
 }
 
+const trainLoaded={};
+async function toggleTraining(idx){
+  const wrap=document.getElementById(`train-${idx}`);
+  wrap.classList.toggle("open");
+  const btn=document.getElementById(`btn-train-${idx}`);
+  if(btn)btn.querySelector("span:last-child").textContent=wrap.classList.contains("open")?"▲":"▼";
+  if(!wrap.classList.contains("open")||trainLoaded[idx])return;
+  trainLoaded[idx]=true;
+  const p=window._players[idx];
+  const role=detectRole(p.roleBreakdown)||"Unknown";
+  const roleLabel=ROLE_LABELS[role]||role;
+  const rank=p.solo?`${p.solo.tier} ${p.solo.rank}`:"Unranked";
+  const topChampNames=p.topChamps.map(c=>c.name).join(", ")||"Unknown";
+
+  const prompt=`You are an expert League of Legends coach. A player has the following stats from their last 10 games. Analyze their weaknesses and create a detailed, personalized training plan.
+
+Player stats:
+- Summoner: ${p.displayName}
+- Role: ${roleLabel}
+- Rank: ${rank}
+- Top champions: ${topChampNames}
+- Avg KDA: ${p.avgKDA}
+- Avg CS/min: ${p.avgCSPM}
+- Avg kill participation: ${p.avgKP}%
+- Avg vision score: ${p.avgVS}
+- Avg damage/min: ${p.avgDPM}
+- Avg deaths/game: ${p.avgDeaths}
+- Win rate: ${p.winRate}%
+- Game mode: ${MODE_LABELS[p.gameMode]||p.gameMode}
+
+Based on these stats, identify the 3 most important areas to improve for this specific role and rank. For each area:
+1. Explain WHY this stat indicates a problem for their role/rank
+2. Give 3-4 specific actionable drills or exercises they can do in-game
+3. Give 1-2 mental/decision-making tips related to this weakness
+4. Suggest what good performance looks like for their rank
+
+Format your response as JSON only, no markdown, no backticks:
+{
+  "areas": [
+    {
+      "title": "Area title with emoji",
+      "why": "Why this is a problem for their role/rank (2-3 sentences)",
+      "drills": ["drill 1", "drill 2", "drill 3", "drill 4"],
+      "mindset": ["tip 1", "tip 2"],
+      "benchmark": "What good looks like at their rank"
+    }
+  ]
+}`;
+
+  try{
+    const res=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        model:"claude-sonnet-4-6",
+        max_tokens:1000,
+        messages:[{role:"user",content:prompt}]
+      })
+    });
+    const json=await res.json();
+    const text=json.content.map(b=>b.type==="text"?b.text:"").join("");
+    const clean=text.replace(/```json|```/g,"").trim();
+    const data=JSON.parse(clean);
+
+    document.getElementById(`train-loading-${idx}`).style.display="none";
+    const container=document.getElementById(`train-content-${idx}`);
+    container.innerHTML=data.areas.map(a=>`
+      <div class="focus-area">
+        <div class="focus-title">${a.title}</div>
+        <div class="focus-body">
+          <div style="color:#6b7280;font-size:11px;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Why this matters</div>
+          <div style="margin-bottom:10px">${a.why}</div>
+          <div style="color:#6b7280;font-size:11px;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Drills</div>
+          <ul style="padding-left:16px;margin-bottom:10px">${a.drills.map(d=>`<li style="margin-bottom:4px">${d}</li>`).join("")}</ul>
+          <div style="color:#6b7280;font-size:11px;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Mindset tips</div>
+          <ul style="padding-left:16px;margin-bottom:10px">${a.mindset.map(m=>`<li style="margin-bottom:4px">${m}</li>`).join("")}</ul>
+          <div style="color:#6b7280;font-size:11px;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Benchmark for ${rank}</div>
+          <div style="color:#34d399">${a.benchmark}</div>
+        </div>
+      </div>`).join("");
+  }catch(e){
+    document.getElementById(`train-loading-${idx}`).textContent=`Could not generate training plan: ${e.message}`;
+  }
+}
+
 async function fetchAll(){
   const apiKey=document.getElementById("apiKey").value.trim();
   const[platform,routing]=document.getElementById("region").value.split("|");
@@ -580,6 +676,7 @@ async function fetchAll(){
   document.getElementById("loading").style.display="block";
   document.getElementById("searchBtn").disabled=true;
   Object.keys(tlLoaded).forEach(k=>delete tlLoaded[k]);
+  Object.keys(trainLoaded).forEach(k=>delete trainLoaded[k]);
   const players=[];
   for(let i=0;i<names.length;i++){
     document.getElementById("stepText").textContent=`Fetching ${names[i]} (${i+1}/${names.length})…`;
