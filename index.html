@@ -382,7 +382,7 @@ function renderCard(p,idx){
         <div class="pname" style="color:${playerColor}">${p.displayName}</div>
         <div class="plevel">Level ${p.level}</div>
       </div>
-      <div class="grade-badge" style="color:${col};background:${bg}">${g}</div>
+      <div class="grade-badge" style="color:${col};background:${bg}">${g}<div style="font-size:11px;font-weight:400;color:${col};opacity:0.8">${p.score}</div></div>
     </div>
     <div class="rank-badge" style="color:${tierColor(p.solo?.tier)}">${rankLabel}</div>
     ${p.solo?`<div style="font-size:11px;color:#6b7280;margin-bottom:8px">${p.solo.wins}W ${p.solo.losses}L this season</div>`:""}
