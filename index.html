@@ -114,8 +114,7 @@ button.expand-btn:hover{background:#1e3a5a;}
     <div class="field">
       <label>Riot API Key</label>
       <div class="key-wrap">
-        <input type="password" id="apiKey" placeholder="RGAPI-…" value="RGAPI-6c981526-41e7-4d06-946c-369022179f44
-"/>
+        <input type="password" id="apiKey" placeholder="RGAPI-…" value="PASTE_YOUR_KEY_HERE"/>
         <button class="eye-btn" onclick="toggleKey()">👁</button>
       </div>
     </div>
@@ -219,24 +218,20 @@ function detectRole(rb){if(!rb||!rb.length)return"OTHER";return [...rb].sort((a,
 function calcScore(p){
   const role=detectRole(p.roleBreakdown);
   let s=0;
-  s+=Math.min(p.winRate/100*25,25);
   if(role==="UTILITY"){
-    s+=Math.min((p.avgKDA/3.5)*20,20);
-    s+=Math.min((p.avgVS/55)*25,25);
-    s+=Math.min((p.avgKP/55)*20,20);
-    s+=Math.min((p.avgDPM/500)*10,10);
+    s+=Math.min((p.avgKDA/3.5)*25,25);
+    s+=Math.min((p.avgVS/55)*40,40);
+    s+=Math.min((p.avgKP/55)*35,35);
   }else if(role==="JUNGLE"){
-    s+=Math.min((p.avgKDA/4.5)*20,20);
-    s+=Math.min((p.avgCSPM/5.0)*12,12);
-    s+=Math.min((p.avgKP/70)*18,18);
-    s+=Math.min((p.avgDPM/1000)*10,10);
-    s+=Math.min((p.avgVS/35)*10,10);
+    s+=Math.min((p.avgKDA/4.5)*30,30);
+    s+=Math.min((p.avgCSPM/5.0)*20,20);
+    s+=Math.min((p.avgKP/70)*30,30);
+    s+=Math.min((p.avgVS/35)*20,20);
   }else{
-    s+=Math.min((p.avgKDA/4.5)*20,20);
-    s+=Math.min((p.avgCSPM/7.0)*15,15);
-    s+=Math.min((p.avgKP/75)*15,15);
-    s+=Math.min((p.avgDPM/1000)*15,15);
-    s+=Math.min((p.avgVS/35)*10,10);
+    s+=Math.min((p.avgKDA/4.5)*30,30);
+    s+=Math.min((p.avgCSPM/7.0)*25,25);
+    s+=Math.min((p.avgKP/75)*25,25);
+    s+=Math.min((p.avgDPM/1000)*20,20);
   }
   return Math.round(s);
 }
