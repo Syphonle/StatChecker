@@ -198,7 +198,13 @@ function masteryLabel(lvl){
 function toggleKey(){const i=document.getElementById("apiKey");i.type=i.type==="password"?"text":"password";}
 function showError(m){const e=document.getElementById("error");e.textContent=m;e.style.display="block";}
 function hideError(){document.getElementById("error").style.display="none";}
-function toggle(id){const el=document.getElementById(id);el.classList.toggle("open");const btn=document.getElementById("btn-"+id);if(btn)btn.querySelector("span:last-child").textContent=el.classList.contains("open")?"▲":"▼";}
+function toggle(id){
+  const el=document.getElementById(id);
+  if(!el)return;
+  el.classList.toggle("open");
+  const btn=document.getElementById("btn-"+id);
+  if(btn)btn.querySelector("span:last-child").textContent=el.classList.contains("open")?"▲":"▼";
+}
 
 async function riotFetch(url,apiKey){
   const res=await fetch(url,{headers:{"X-Riot-Token":apiKey}});
@@ -312,6 +318,7 @@ async function fetchSummoner(name,apiKey,platform,routing){
     puuid,platform,routing,apiKey,solo,
     winRate:Math.round((wins/n)*100),wins,losses:n-wins,
     avgKDA,avgKills:parseFloat((tK/n).toFixed(1)),avgDeaths:parseFloat((tD/n).toFixed(1)),avgAssists:parseFloat((tA/n).toFixed(1)),
+    avgCSPM,avgKP:Math.round(tKP/n),avgVS:Math.round(tVS/n),avgDPM:Math.round(tDPM/n),avgCS:Math.round(tCS/n),
     avgCSPM,avgKP,avgVS,avgDPM,avgCS:Math.round(tCS/n),
     topChamps,matches,roleBreakdown,score,
   };
@@ -369,7 +376,7 @@ function renderCard(p,idx){
     ${champsHtml}
     <button class="expand-btn" id="btn-${roleId}" onclick="toggle('${roleId}')"><span>📍 Role breakdown</span><span>▼</span></button>
     <div class="collapsible" id="${roleId}">${roleHtml}</div>
-    <button class="expand-btn" id="btn-${tlId}" onclick="toggleTimeline(${idx})"><span>📈 Death timeline</span><span>▼</span></button>
+    <button class="expand-btn" id="btn-tl-${idx}" onclick="toggleTimeline(${idx})"><span>📈 Death timeline</span><span>▼</span></button>
     <div class="collapsible" id="${tlId}">
       <div class="tl-loading" id="tl-loading-${idx}"><span class="spinner"></span> Loading…</div>
       <div class="chart-wrap" style="height:180px;display:none" id="tl-chart-wrap-${idx}">
