@@ -48,12 +48,33 @@
   @keyframes spin { to { transform: rotate(360deg); } }
   .green { color: #34d399; } .blue { color: #60a5fa; } .gray { color: #9ca3af; } .red { color: #f87171; }
   .step { font-size: 12px; color: #6b7280; text-align: center; margin-top: 8px; }
+  .teams-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; background: #181b23; border: 1px solid #2a2e3a; border-radius: 10px; padding: 12px; }
+  .teams-bar select { flex: 1; min-width: 140px; }
+  .team-btn { background: #1d2535; border: 1px solid #2a2e3a; border-radius: 6px; color: #cdd2e0; cursor: pointer; font-size: 13px; padding: 7px 12px; white-space: nowrap; }
+  .team-btn:hover { background: #2a2e3a; }
+  .team-btn.del { color: #f87171; border-color: #7f1d1d; }
+  .team-btn.del:hover { background: #2d1515; }
+  .save-row { display: flex; gap: 8px; align-items: center; flex: 1 1 100%; }
+  .save-row input { flex: 1; }
 </style>
 </head>
 <body>
 
 <h1>⚔️ LoL Post-Game Team Stats</h1>
 <p class="sub">Enter your team's summoner names to review everyone's performance</p>
+
+<div class="teams-bar" id="teamsBar">
+  <div style="font-size:13px;color:#6b7280;width:100%">💾 Saved Teams</div>
+  <select id="teamSelect" style="flex:1;min-width:140px">
+    <option value="">— select a team —</option>
+  </select>
+  <button class="team-btn" onclick="loadTeam()">Load</button>
+  <button class="team-btn del" onclick="deleteTeam()">Delete</button>
+  <div class="save-row">
+    <input type="text" id="teamName" placeholder="Team name…" />
+    <button class="team-btn" onclick="saveTeam()">Save current</button>
+  </div>
+</div>
 
 <div class="setup">
   <div class="field">
@@ -269,6 +290,60 @@ function showError(msg) {
   el.textContent = msg;
   el.style.display = "block";
 }
+
+function getTeams() {
+  try { return JSON.parse(localStorage.getItem("lol_teams") || "{}"); } catch { return {}; }
+}
+
+function saveTeams(teams) {
+  localStorage.setItem("lol_teams", JSON.stringify(teams));
+}
+
+function refreshTeamSelect() {
+  const sel = document.getElementById("teamSelect");
+  const teams = getTeams();
+  const current = sel.value;
+  sel.innerHTML = '<option value="">— select a team —</option>';
+  Object.keys(teams).forEach(name => {
+    const opt = document.createElement("option");
+    opt.value = name; opt.textContent = name;
+    if (name === current) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+function saveTeam() {
+  const name = document.getElementById("teamName").value.trim();
+  if (!name) { showError("Enter a team name before saving."); return; }
+  const names = [...document.querySelectorAll(".sname")].map(i => i.value.trim());
+  if (names.every(n => !n)) { showError("Enter at least one summoner name before saving."); return; }
+  const teams = getTeams();
+  teams[name] = names;
+  saveTeams(teams);
+  refreshTeamSelect();
+  document.getElementById("teamName").value = "";
+  document.getElementById("teamSelect").value = name;
+  document.getElementById("error").style.display = "none";
+}
+
+function loadTeam() {
+  const name = document.getElementById("teamSelect").value;
+  if (!name) return;
+  const teams = getTeams();
+  const names = teams[name] || [];
+  document.querySelectorAll(".sname").forEach((inp, i) => { inp.value = names[i] || ""; });
+}
+
+function deleteTeam() {
+  const name = document.getElementById("teamSelect").value;
+  if (!name) return;
+  const teams = getTeams();
+  delete teams[name];
+  saveTeams(teams);
+  refreshTeamSelect();
+}
+
+refreshTeamSelect();
 </script>
 </body>
 </html>
