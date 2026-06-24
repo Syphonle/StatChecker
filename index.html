@@ -3,346 +3,426 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>LoL Post-Game Stats</title>
+<title>LoL Stat Checker</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #0e1015; color: #cdd2e0; min-height: 100vh; padding: 24px 16px; }
-  h1 { font-size: 20px; font-weight: 500; color: #e8ecf5; margin-bottom: 4px; }
-  .sub { font-size: 13px; color: #6b7280; margin-bottom: 24px; }
-  .setup { background: #181b23; border: 1px solid #2a2e3a; border-radius: 10px; padding: 16px; margin-bottom: 24px; display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; }
-  .field { display: flex; flex-direction: column; gap: 5px; }
-  .field label { font-size: 12px; color: #6b7280; }
-  input, select { background: #0e1015; border: 1px solid #2a2e3a; border-radius: 6px; color: #cdd2e0; padding: 8px 10px; font-size: 14px; outline: none; }
-  input:focus, select:focus { border-color: #4a6fa5; }
-  .key-wrap { display: flex; align-items: center; gap: 6px; }
-  .key-wrap input { width: 280px; }
-  .eye-btn { background: none; border: none; color: #6b7280; cursor: pointer; font-size: 16px; padding: 4px; }
-  .region-sel { width: 100px; }
-  .summoners { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; flex: 1 1 100%; }
-  .summoners input { width: 100%; }
-  button.search { background: #2563eb; border: none; border-radius: 6px; color: #fff; cursor: pointer; font-size: 14px; font-weight: 500; padding: 9px 20px; white-space: nowrap; }
-  button.search:disabled { opacity: 0.5; cursor: not-allowed; }
-  .error { background: #2d1515; border: 1px solid #7f1d1d; border-radius: 8px; color: #fca5a5; font-size: 13px; padding: 10px 14px; margin-bottom: 16px; }
-  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
-  .card { background: #181b23; border: 1px solid #2a2e3a; border-radius: 10px; padding: 14px; }
-  .card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
-  .avatar { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; background: #2a2e3a; flex-shrink: 0; }
-  .avatar-fallback { width: 44px; height: 44px; border-radius: 50%; background: #2a2e3a; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 500; color: #6b7280; flex-shrink: 0; }
-  .name { font-size: 15px; font-weight: 500; color: #e8ecf5; }
-  .level { font-size: 12px; color: #6b7280; }
-  .rank-badge { font-size: 12px; padding: 3px 8px; border-radius: 5px; background: #23283a; display: inline-block; margin-bottom: 10px; }
-  .stats-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 12px; }
-  .stat { background: #0e1015; border-radius: 6px; padding: 8px; text-align: center; }
-  .stat-label { font-size: 11px; color: #6b7280; margin-bottom: 2px; }
-  .stat-value { font-size: 15px; font-weight: 500; }
-  .champs { margin-top: 10px; }
-  .champ-title { font-size: 12px; color: #6b7280; margin-bottom: 6px; }
-  .champ-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
-  .champ-icon { width: 28px; height: 28px; border-radius: 4px; object-fit: cover; background: #2a2e3a; }
-  .champ-name { font-size: 13px; color: #cdd2e0; flex: 1; }
-  .champ-stats { font-size: 12px; text-align: right; }
-  .wr-bar-wrap { width: 50px; height: 5px; background: #2a2e3a; border-radius: 3px; overflow: hidden; }
-  .wr-bar { height: 100%; border-radius: 3px; }
-  .loading { text-align: center; padding: 40px; color: #6b7280; font-size: 14px; }
-  .spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid #2a2e3a; border-top-color: #2563eb; border-radius: 50%; animation: spin 0.8s linear infinite; margin-right: 8px; vertical-align: middle; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .green { color: #34d399; } .blue { color: #60a5fa; } .gray { color: #9ca3af; } .red { color: #f87171; }
-  .step { font-size: 12px; color: #6b7280; text-align: center; margin-top: 8px; }
-  .teams-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; background: #181b23; border: 1px solid #2a2e3a; border-radius: 10px; padding: 12px; }
-  .teams-bar select { flex: 1; min-width: 140px; }
-  .team-btn { background: #1d2535; border: 1px solid #2a2e3a; border-radius: 6px; color: #cdd2e0; cursor: pointer; font-size: 13px; padding: 7px 12px; white-space: nowrap; }
-  .team-btn:hover { background: #2a2e3a; }
-  .team-btn.del { color: #f87171; border-color: #7f1d1d; }
-  .team-btn.del:hover { background: #2d1515; }
-  .save-row { display: flex; gap: 8px; align-items: center; flex: 1 1 100%; }
-  .save-row input { flex: 1; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #0e1015; color: #cdd2e0; min-height: 100vh; padding: 24px 16px; }
+h1 { font-size: 20px; font-weight: 500; color: #e8ecf5; margin-bottom: 4px; }
+.sub { font-size: 13px; color: #6b7280; margin-bottom: 20px; }
+input, select { background: #0e1015; border: 1px solid #2a2e3a; border-radius: 6px; color: #cdd2e0; padding: 8px 10px; font-size: 14px; outline: none; }
+input:focus, select:focus { border-color: #4a6fa5; }
+button { cursor: pointer; border-radius: 6px; font-size: 14px; padding: 8px 14px; border: 1px solid #2a2e3a; background: #1d2535; color: #cdd2e0; }
+button:hover { background: #2a2e3a; }
+button.primary { background: #2563eb; border-color: #2563eb; color: #fff; font-weight: 500; }
+button.primary:hover { background: #1d4ed8; }
+button.primary:disabled { opacity: 0.5; cursor: not-allowed; }
+button.danger { color: #f87171; border-color: #7f1d1d; }
+button.danger:hover { background: #2d1515; }
+button.deep-dive { background: #1a2535; border-color: #2a3a5a; color: #60a5fa; font-size: 12px; padding: 5px 10px; margin-top: 10px; width: 100%; }
+button.deep-dive:hover { background: #1e3a5a; }
+
+.panel { background: #181b23; border: 1px solid #2a2e3a; border-radius: 10px; padding: 14px 16px; margin-bottom: 16px; }
+.panel-title { font-size: 13px; color: #6b7280; margin-bottom: 12px; }
+
+.setup-grid { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; }
+.field { display: flex; flex-direction: column; gap: 5px; }
+.field label { font-size: 12px; color: #6b7280; }
+.key-wrap { display: flex; align-items: center; gap: 6px; }
+.key-wrap input { width: 260px; }
+.eye-btn { background: none; border: none; color: #6b7280; font-size: 16px; padding: 4px; }
+.summoners-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 8px; width: 100%; }
+
+.teams-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.teams-row select { flex: 1; min-width: 150px; }
+.save-row { display: flex; gap: 8px; align-items: center; flex: 1 1 100%; }
+.save-row input { flex: 1; }
+
+.error { background: #2d1515; border: 1px solid #7f1d1d; border-radius: 8px; color: #fca5a5; font-size: 13px; padding: 10px 14px; margin-bottom: 14px; }
+.loading { text-align: center; padding: 40px; color: #6b7280; font-size: 14px; }
+.spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid #2a2e3a; border-top-color: #2563eb; border-radius: 50%; animation: spin 0.8s linear infinite; margin-right: 8px; vertical-align: middle; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin-bottom: 20px; }
+.card { background: #181b23; border: 1px solid #2a2e3a; border-radius: 10px; padding: 14px; }
+.card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.avatar { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; background: #2a2e3a; flex-shrink: 0; }
+.avatar-fb { width: 42px; height: 42px; border-radius: 50%; background: #2a2e3a; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 500; color: #6b7280; flex-shrink: 0; }
+.pname { font-size: 15px; font-weight: 500; color: #e8ecf5; }
+.plevel { font-size: 12px; color: #6b7280; }
+.rank-badge { font-size: 12px; padding: 3px 8px; border-radius: 5px; background: #23283a; display: inline-block; margin-bottom: 8px; }
+.stats-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 10px; }
+.stat { background: #0e1015; border-radius: 6px; padding: 7px; text-align: center; }
+.stat-label { font-size: 11px; color: #6b7280; margin-bottom: 2px; }
+.stat-val { font-size: 15px; font-weight: 500; }
+.champ-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.champ-icon { width: 26px; height: 26px; border-radius: 4px; object-fit: cover; background: #2a2e3a; }
+.champ-name { font-size: 13px; flex: 1; }
+.champ-wr { font-size: 12px; text-align: right; }
+.wr-bar-wrap { width: 44px; height: 5px; background: #2a2e3a; border-radius: 3px; overflow: hidden; }
+.wr-bar { height: 100%; border-radius: 3px; }
+
+.timeline-wrap { margin-top: 12px; border-top: 1px solid #2a2e3a; padding-top: 12px; display: none; }
+.timeline-wrap.open { display: block; }
+.tl-loading { font-size: 12px; color: #6b7280; text-align: center; padding: 12px 0; }
+
+.graphs-section { margin-top: 4px; }
+.graphs-section h2 { font-size: 16px; font-weight: 500; color: #e8ecf5; margin-bottom: 14px; }
+.graphs-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+.graph-card { background: #181b23; border: 1px solid #2a2e3a; border-radius: 10px; padding: 14px; }
+.graph-title { font-size: 13px; color: #9ca3af; margin-bottom: 12px; }
+.chart-wrap { position: relative; width: 100%; }
 </style>
 </head>
 <body>
 
-<h1>⚔️ LoL Post-Game Team Stats</h1>
-<p class="sub">Enter your team's summoner names to review everyone's performance</p>
+<h1>⚔️ LoL Stat Checker</h1>
+<p class="sub">Post-game team stats powered by the Riot Games API</p>
 
-<div class="teams-bar" id="teamsBar">
-  <div style="font-size:13px;color:#6b7280;width:100%">💾 Saved Teams</div>
-  <select id="teamSelect" style="flex:1;min-width:140px">
-    <option value="">— select a team —</option>
-  </select>
-  <button class="team-btn" onclick="loadTeam()">Load</button>
-  <button class="team-btn del" onclick="deleteTeam()">Delete</button>
-  <div class="save-row">
-    <input type="text" id="teamName" placeholder="Team name…" />
-    <button class="team-btn" onclick="saveTeam()">Save current</button>
+<!-- Saved Teams -->
+<div class="panel">
+  <div class="panel-title">💾 Saved Teams</div>
+  <div class="teams-row">
+    <select id="teamSelect"><option value="">— select a team —</option></select>
+    <button onclick="loadTeam()">Load</button>
+    <button class="danger" onclick="deleteTeam()">Delete</button>
+    <div class="save-row">
+      <input type="text" id="teamName" placeholder="Team name…" />
+      <button onclick="saveTeam()">Save current</button>
+    </div>
   </div>
 </div>
 
-<div class="setup">
-  <div class="field">
-    <label>Riot API Key</label>
-    <div class="key-wrap">
-      <input type="password" id="apiKey" placeholder="RGAPI-…" />
-      <button class="eye-btn" onclick="toggleKey()" title="Show/hide key">👁</button>
+<!-- Setup -->
+<div class="panel">
+  <div class="setup-grid">
+    <div class="field">
+      <label>Riot API Key</label>
+      <div class="key-wrap">
+        <input type="password" id="apiKey" placeholder="RGAPI-…" />
+        <button class="eye-btn" onclick="toggleKey()">👁</button>
+      </div>
     </div>
-  </div>
-  <div class="field">
-    <label>Region</label>
-    <select class="region-sel" id="region">
-      <option value="na1|americas">NA1</option>
-      <option value="euw1|europe">EUW1</option>
-      <option value="kr|asia">KR</option>
-      <option value="eune1|europe">EUNE1</option>
-      <option value="br1|americas">BR1</option>
-      <option value="jp1|asia">JP1</option>
-      <option value="la1|americas">LA1</option>
-      <option value="la2|americas">LA2</option>
-      <option value="oc1|sea">OC1</option>
-      <option value="tr1|europe">TR1</option>
-      <option value="ru|europe">RU</option>
-    </select>
-  </div>
-  <div class="field" style="flex:1 1 100%">
-    <label>Summoner Names (up to 5 — use Name#TAG format)</label>
-    <div class="summoners">
-      <input type="text" class="sname" placeholder="Player 1 (you)" />
-      <input type="text" class="sname" placeholder="Player 2" />
-      <input type="text" class="sname" placeholder="Player 3" />
-      <input type="text" class="sname" placeholder="Player 4" />
-      <input type="text" class="sname" placeholder="Player 5" />
+    <div class="field">
+      <label>Region</label>
+      <select id="region" style="width:100px">
+        <option value="na1|americas">NA1</option>
+        <option value="euw1|europe">EUW1</option>
+        <option value="kr|asia">KR</option>
+        <option value="eune1|europe">EUNE1</option>
+        <option value="br1|americas">BR1</option>
+        <option value="jp1|asia">JP1</option>
+        <option value="la1|americas">LA1</option>
+        <option value="la2|americas">LA2</option>
+        <option value="oc1|sea">OC1</option>
+        <option value="tr1|europe">TR1</option>
+        <option value="ru|europe">RU</option>
+      </select>
     </div>
+    <div class="field" style="flex:1 1 100%">
+      <label>Summoner Names (Name#TAG format)</label>
+      <div class="summoners-grid">
+        <input type="text" class="sname" placeholder="Player 1 (you)" />
+        <input type="text" class="sname" placeholder="Player 2" />
+        <input type="text" class="sname" placeholder="Player 3" />
+        <input type="text" class="sname" placeholder="Player 4" />
+        <input type="text" class="sname" placeholder="Player 5" />
+      </div>
+    </div>
+    <button class="primary" onclick="fetchAll()" id="searchBtn">🔍 Fetch Stats</button>
   </div>
-  <button class="search" onclick="fetchAll()" id="searchBtn">🔍 Fetch Stats</button>
 </div>
 
 <div id="error" class="error" style="display:none"></div>
-<div id="loading" class="loading" style="display:none"><span class="spinner"></span>Loading…<div class="step" id="stepText"></div></div>
-<div id="results" class="grid"></div>
+<div id="loading" class="loading" style="display:none"><span class="spinner"></span><span id="stepText">Loading…</span></div>
+<div id="output" style="display:none">
+  <div class="cards-grid" id="cardsGrid"></div>
+  <div class="graphs-section">
+    <h2>📊 Team Overview</h2>
+    <div class="graphs-grid">
+      <div class="graph-card"><div class="graph-title">CS per minute</div><div class="chart-wrap" style="height:220px"><canvas id="chartCS" role="img" aria-label="CS per minute comparison"></canvas></div></div>
+      <div class="graph-card"><div class="graph-title">KDA</div><div class="chart-wrap" style="height:220px"><canvas id="chartKDA" role="img" aria-label="KDA comparison"></canvas></div></div>
+      <div class="graph-card"><div class="graph-title">Win rate %</div><div class="chart-wrap" style="height:220px"><canvas id="chartWR" role="img" aria-label="Win rate comparison"></canvas></div></div>
+      <div class="graph-card"><div class="graph-title">Kill participation %</div><div class="chart-wrap" style="height:220px"><canvas id="chartKP" role="img" aria-label="Kill participation comparison"></canvas></div></div>
+      <div class="graph-card"><div class="graph-title">Vision score per game</div><div class="chart-wrap" style="height:220px"><canvas id="chartVS" role="img" aria-label="Vision score comparison"></canvas></div></div>
+      <div class="graph-card"><div class="graph-title">Avg deaths per game</div><div class="chart-wrap" style="height:220px"><canvas id="chartDeaths" role="img" aria-label="Deaths per game comparison"></canvas></div></div>
+    </div>
+  </div>
+</div>
 
 <script>
-const QUEUE_MAP = {420:"Ranked Solo",440:"Ranked Flex",450:"ARAM",400:"Normal Draft",430:"Normal Blind"};
+const COLORS = ["#60a5fa","#34d399","#fbbf24","#f87171","#c084fc"];
+const SR_QUEUES = [420,440,400,430,0];
 
-function kdaColor(v) { return v>=4?"#34d399":v>=3?"#60a5fa":v>=2?"#9ca3af":"#f87171"; }
-function wrColor(v) { return v>=60?"#34d399":v>=50?"#60a5fa":"#f87171"; }
-function tierColor(t) {
-  if(!t) return "#9ca3af";
-  const s=t.toLowerCase();
-  if(["challenger","grandmaster","master"].some(x=>s.includes(x))) return "#fbbf24";
-  if(s.includes("diamond")||s.includes("emerald")) return "#67e8f9";
-  if(s.includes("platinum")) return "#6ee7b7";
-  if(s.includes("gold")) return "#fbbf24";
-  if(s.includes("silver")) return "#d1d5db";
-  if(s.includes("bronze")) return "#d97706";
-  return "#a78bfa";
+function kdaColor(v){return v>=4?"#34d399":v>=3?"#60a5fa":v>=2?"#9ca3af":"#f87171";}
+function wrColor(v){return v>=60?"#34d399":v>=50?"#60a5fa":"#f87171";}
+function tierColor(t){
+  if(!t)return"#9ca3af";const s=t.toLowerCase();
+  if(["challenger","grandmaster","master"].some(x=>s.includes(x)))return"#fbbf24";
+  if(s.includes("diamond")||s.includes("emerald"))return"#67e8f9";
+  if(s.includes("platinum"))return"#6ee7b7";
+  if(s.includes("gold"))return"#fbbf24";
+  if(s.includes("silver"))return"#d1d5db";
+  if(s.includes("bronze"))return"#d97706";
+  return"#a78bfa";
 }
 
-function toggleKey() {
-  const inp = document.getElementById("apiKey");
-  inp.type = inp.type === "password" ? "text" : "password";
-}
+function toggleKey(){const i=document.getElementById("apiKey");i.type=i.type==="password"?"text":"password";}
+function showError(m){const e=document.getElementById("error");e.textContent=m;e.style.display="block";}
+function hideError(){document.getElementById("error").style.display="none";}
 
-async function riotFetch(url, apiKey) {
-  console.log("Fetching:", url);
-  const res = await fetch(url, { headers: { "X-Riot-Token": apiKey } });
-  console.log("Response:", res.status, url);
-  if (res.status === 401) throw new Error("Unauthorized (401) — check your API key for extra spaces or missing characters.");
-  if (res.status === 403) throw new Error(`Forbidden (403) on: ${url}`);
-  if (res.status === 404) throw new Error("Summoner not found (404) — try Name#TAG format");
-  if (res.status === 429) throw new Error("Rate limit hit — wait a moment and retry (429)");
-  if (!res.ok) throw new Error(`Request failed: ${res.status} on ${url}`);
+async function riotFetch(url,apiKey){
+  const res=await fetch(url,{headers:{"X-Riot-Token":apiKey}});
+  if(res.status===401)throw new Error("Invalid API key (401)");
+  if(res.status===403)throw new Error(`Forbidden (403): ${url}`);
+  if(res.status===404)throw new Error("Summoner not found — try Name#TAG format (404)");
+  if(res.status===429)throw new Error("Rate limit hit — wait a moment (429)");
+  if(!res.ok)throw new Error(`Failed ${res.status}: ${url}`);
   return res.json();
 }
 
-async function fetchSummoner(name, apiKey, platform, routing) {
-  let puuid, summonerData, displayName;
-  const parts = name.trim().split("#");
-  if (parts.length === 2) {
-    const acct = await riotFetch(`https://${routing}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodeURIComponent(parts[0])}/${encodeURIComponent(parts[1])}`, apiKey);
-    puuid = acct.puuid;
-    displayName = `${acct.gameName}#${acct.tagLine}`;
-    summonerData = await riotFetch(`https://${platform}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${puuid}`, apiKey);
+async function fetchSummoner(name,apiKey,platform,routing){
+  let puuid,summonerData,displayName;
+  const parts=name.trim().split("#");
+  if(parts.length===2){
+    const acct=await riotFetch(`https://${routing}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodeURIComponent(parts[0])}/${encodeURIComponent(parts[1])}`,apiKey);
+    puuid=acct.puuid; displayName=`${acct.gameName}#${acct.tagLine}`;
+    summonerData=await riotFetch(`https://${platform}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${puuid}`,apiKey);
   } else {
-    summonerData = await riotFetch(`https://${platform}.api.riotgames.com/lol/summoner/v4/summoners/by-name/${encodeURIComponent(name.trim())}`, apiKey);
-    puuid = summonerData.puuid;
-    displayName = summonerData.name;
+    summonerData=await riotFetch(`https://${platform}.api.riotgames.com/lol/summoner/v4/summoners/by-name/${encodeURIComponent(name.trim())}`,apiKey);
+    puuid=summonerData.puuid; displayName=summonerData.name;
   }
+  const ranked=await riotFetch(`https://${platform}.api.riotgames.com/lol/league/v4/entries/by-puuid/${puuid}`,apiKey);
+  const solo=ranked.find(e=>e.queueType==="RANKED_SOLO_5x5")||null;
 
-  const ranked = await riotFetch(`https://${platform}.api.riotgames.com/lol/league/v4/entries/by-puuid/${puuid}`, apiKey);
-  const solo = ranked.find(e => e.queueType === "RANKED_SOLO_5x5") || null;
+  const matchIds=await riotFetch(`https://${routing}.api.riotgames.com/lol/match/v5/matches/by-puuid/${puuid}/ids?start=0&count=10`,apiKey);
+  const matchDetails=await Promise.all(matchIds.slice(0,10).map(id=>riotFetch(`https://${routing}.api.riotgames.com/lol/match/v5/matches/${id}`,apiKey)));
 
-  const matchIds = await riotFetch(`https://${routing}.api.riotgames.com/lol/match/v5/matches/by-puuid/${puuid}/ids?queue=420&start=0&count=10`, apiKey);
-  const matchDetails = await Promise.all(matchIds.slice(0,10).map(id =>
-    riotFetch(`https://${routing}.api.riotgames.com/lol/match/v5/matches/${id}`, apiKey)
-  ));
-
-  const matches = matchDetails.map(m => {
-    const p = m.info.participants.find(x => x.puuid === puuid);
-    if (!p) return null;
-    const kda = p.deaths===0 ? p.kills+p.assists : (p.kills+p.assists)/p.deaths;
-    return {
-      champion: p.championName, result: p.win?"WIN":"LOSS",
-      kills: p.kills, deaths: p.deaths, assists: p.assists,
-      cs: p.totalMinionsKilled+p.neutralMinionsKilled,
-      kda: parseFloat(kda.toFixed(2)),
-      queue: QUEUE_MAP[m.info.queueId]||"Custom",
+  const matches=matchDetails.map(m=>{
+    if(!SR_QUEUES.includes(m.info.queueId)&&m.info.gameMode!=="CLASSIC")return null;
+    const p=m.info.participants.find(x=>x.puuid===puuid);
+    if(!p)return null;
+    const dur=m.info.gameDuration/60;
+    const teamKills=m.info.participants.filter(x=>x.teamId===p.teamId).reduce((a,x)=>a+x.kills,0);
+    const kp=teamKills>0?Math.round(((p.kills+p.assists)/teamKills)*100):0;
+    const kda=p.deaths===0?p.kills+p.assists:(p.kills+p.assists)/p.deaths;
+    return{
+      champion:p.championName, result:p.win?"WIN":"LOSS",
+      kills:p.kills, deaths:p.deaths, assists:p.assists,
+      cs:p.totalMinionsKilled+p.neutralMinionsKilled,
+      cspm:parseFloat((( p.totalMinionsKilled+p.neutralMinionsKilled)/dur).toFixed(2)),
+      kda:parseFloat(kda.toFixed(2)), kp,
+      visionScore:p.visionScore||0,
+      matchId:m.metadata.matchId,
     };
   }).filter(Boolean);
 
-  const champMap = {};
-  matches.forEach(m => {
-    if (!champMap[m.champion]) champMap[m.champion]={games:0,wins:0,kills:0,deaths:0,assists:0};
-    champMap[m.champion].games++;
-    if(m.result==="WIN") champMap[m.champion].wins++;
-    champMap[m.champion].kills+=m.kills;
-    champMap[m.champion].deaths+=m.deaths;
-    champMap[m.champion].assists+=m.assists;
-  });
-  const topChamps = Object.entries(champMap).sort((a,b)=>b[1].games-a[1].games).slice(0,3).map(([name,s])=>({
-    name, games:s.games,
-    winRate: Math.round((s.wins/s.games)*100),
-    kda: s.deaths===0 ? parseFloat((s.kills+s.assists).toFixed(2)) : parseFloat(((s.kills+s.assists)/s.deaths).toFixed(2)),
-  }));
-
-  const n = matches.length||1;
-  const wins = matches.filter(m=>m.result==="WIN").length;
+  const n=matches.length||1;
+  const wins=matches.filter(m=>m.result==="WIN").length;
   const tK=matches.reduce((a,m)=>a+m.kills,0);
   const tD=matches.reduce((a,m)=>a+m.deaths,0);
   const tA=matches.reduce((a,m)=>a+m.assists,0);
+  const tCS=matches.reduce((a,m)=>a+m.cs,0);
+  const tCSPM=matches.reduce((a,m)=>a+m.cspm,0);
+  const tKP=matches.reduce((a,m)=>a+m.kp,0);
+  const tVS=matches.reduce((a,m)=>a+m.visionScore,0);
 
-  return {
-    displayName, level: summonerData.summonerLevel, profileIconId: summonerData.profileIconId,
-    solo,
-    winRate: Math.round((wins/n)*100), wins, losses: n-wins,
-    avgKDA: tD===0 ? parseFloat((tK+tA).toFixed(2)) : parseFloat(((tK+tA)/tD).toFixed(2)),
-    avgKills: parseFloat((tK/n).toFixed(1)), avgDeaths: parseFloat((tD/n).toFixed(1)), avgAssists: parseFloat((tA/n).toFixed(1)),
-    topChamps,
+  const champMap={};
+  matches.forEach(m=>{
+    if(!champMap[m.champion])champMap[m.champion]={games:0,wins:0,kills:0,deaths:0,assists:0};
+    champMap[m.champion].games++;
+    if(m.result==="WIN")champMap[m.champion].wins++;
+    champMap[m.champion].kills+=m.kills;champMap[m.champion].deaths+=m.deaths;champMap[m.champion].assists+=m.assists;
+  });
+  const topChamps=Object.entries(champMap).sort((a,b)=>b[1].games-a[1].games).slice(0,3).map(([name,s])=>({
+    name,games:s.games,winRate:Math.round((s.wins/s.games)*100),
+    kda:s.deaths===0?parseFloat((s.kills+s.assists).toFixed(2)):parseFloat(((s.kills+s.assists)/s.deaths).toFixed(2)),
+  }));
+
+  return{
+    displayName,level:summonerData.summonerLevel,profileIconId:summonerData.profileIconId,
+    puuid,platform,routing,apiKey,
+    solo,winRate:Math.round((wins/n)*100),wins,losses:n-wins,
+    avgKDA:tD===0?parseFloat((tK+tA).toFixed(2)):parseFloat(((tK+tA)/tD).toFixed(2)),
+    avgKills:parseFloat((tK/n).toFixed(1)),avgDeaths:parseFloat((tD/n).toFixed(1)),avgAssists:parseFloat((tA/n).toFixed(1)),
+    avgCSPM:parseFloat((tCSPM/n).toFixed(2)),avgKP:Math.round(tKP/n),avgVS:Math.round(tVS/n),
+    avgCS:Math.round(tCS/n),topChamps,matches,
   };
 }
 
-function renderCard(p) {
-  const rankLabel = p.solo ? `${p.solo.tier} ${p.solo.rank} — ${p.solo.leaguePoints} LP` : "Unranked";
-  const rankCol = tierColor(p.solo?.tier);
-  const champsHtml = p.topChamps.map(c => `
+function renderCard(p,idx){
+  const rankLabel=p.solo?`${p.solo.tier} ${p.solo.rank} — ${p.solo.leaguePoints} LP`:"Unranked";
+  const col=COLORS[idx%COLORS.length];
+  const champsHtml=p.topChamps.map(c=>`
     <div class="champ-row">
       <img class="champ-icon" src="https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/${c.name}.png" onerror="this.style.display='none'" alt="${c.name}">
-      <span class="champ-name">${c.name}</span>
-      <div class="champ-stats">
-        <div style="color:${wrColor(c.winRate)};font-weight:500">${c.winRate}% WR</div>
-        <div style="color:${kdaColor(c.kda)};font-size:11px">${c.kda} KDA</div>
-      </div>
+      <span class="champ-name">${c.name} <span style="color:#6b7280;font-size:11px">${c.games}g</span></span>
+      <div class="champ-wr"><div style="color:${wrColor(c.winRate)};font-weight:500">${c.winRate}%</div><div style="color:${kdaColor(c.kda)};font-size:11px">${c.kda} KDA</div></div>
       <div class="wr-bar-wrap"><div class="wr-bar" style="width:${Math.min(c.winRate,100)}%;background:${wrColor(c.winRate)}"></div></div>
     </div>`).join("");
-
-  return `
-    <div class="card">
-      <div class="card-header">
-        <img class="avatar" src="https://ddragon.leagueoflegends.com/cdn/14.10.1/img/profileicon/${p.profileIconId}.png"
-          onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" alt="">
-        <div class="avatar-fallback" style="display:none">${p.displayName[0].toUpperCase()}</div>
-        <div>
-          <div class="name">${p.displayName}</div>
-          <div class="level">Level ${p.level}</div>
-        </div>
+  return`<div class="card">
+    <div class="card-header">
+      <img class="avatar" src="https://ddragon.leagueoflegends.com/cdn/14.10.1/img/profileicon/${p.profileIconId}.png" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" alt="">
+      <div class="avatar-fb" style="display:none;border:2px solid ${col}">${p.displayName[0].toUpperCase()}</div>
+      <div><div class="pname" style="color:${col}">${p.displayName}</div><div class="plevel">Level ${p.level}</div></div>
+    </div>
+    <div class="rank-badge" style="color:${tierColor(p.solo?.tier)}">${rankLabel}</div>
+    ${p.solo?`<div style="font-size:11px;color:#6b7280;margin-bottom:8px">${p.solo.wins}W ${p.solo.losses}L this season</div>`:""}
+    <div class="stats-grid">
+      <div class="stat"><div class="stat-label">Win Rate</div><div class="stat-val" style="color:${wrColor(p.winRate)}">${p.winRate}%</div></div>
+      <div class="stat"><div class="stat-label">Avg KDA</div><div class="stat-val" style="color:${kdaColor(p.avgKDA)}">${p.avgKDA}</div></div>
+      <div class="stat"><div class="stat-label">CS/min</div><div class="stat-val">${p.avgCSPM}</div></div>
+      <div class="stat"><div class="stat-label">Kill Part.</div><div class="stat-val">${p.avgKP}%</div></div>
+      <div class="stat"><div class="stat-label">Vision</div><div class="stat-val">${p.avgVS}</div></div>
+      <div class="stat"><div class="stat-label">K/D/A</div><div class="stat-val" style="font-size:12px">${p.avgKills}/${p.avgDeaths}/${p.avgAssists}</div></div>
+    </div>
+    <div style="font-size:12px;color:#6b7280;margin-bottom:6px">Top champions</div>
+    ${champsHtml}
+    <button class="deep-dive" onclick="toggleTimeline(${idx})">📈 Deep Dive — Death Timeline</button>
+    <div class="timeline-wrap" id="tl-${idx}">
+      <div class="tl-loading" id="tl-loading-${idx}"><span class="spinner"></span> Loading timeline…</div>
+      <div class="chart-wrap" style="height:180px;display:none" id="tl-chart-wrap-${idx}">
+        <canvas id="tl-chart-${idx}" role="img" aria-label="Death timeline for ${p.displayName}"></canvas>
       </div>
-      <div class="rank-badge" style="color:${rankCol}">${rankLabel}</div>
-      ${p.solo ? `<div style="font-size:11px;color:#6b7280;margin-bottom:10px">${p.solo.wins}W ${p.solo.losses}L this season</div>` : ""}
-      <div class="stats-grid">
-        <div class="stat"><div class="stat-label">Win Rate</div><div class="stat-value" style="color:${wrColor(p.winRate)}">${p.winRate}%</div></div>
-        <div class="stat"><div class="stat-label">Avg KDA</div><div class="stat-value" style="color:${kdaColor(p.avgKDA)}">${p.avgKDA}</div></div>
-        <div class="stat"><div class="stat-label">K/D/A</div><div class="stat-value" style="font-size:12px">${p.avgKills}/${p.avgDeaths}/${p.avgAssists}</div></div>
-      </div>
-      <div class="champs">
-        <div class="champ-title">Top champions (last 10 ranked)</div>
-        ${champsHtml}
-      </div>
-    </div>`;
+    </div>
+  </div>`;
 }
 
-async function fetchAll() {
-  const apiKey = document.getElementById("apiKey").value.trim();
-  const [platform, routing] = document.getElementById("region").value.split("|");
-  const names = [...document.querySelectorAll(".sname")].map(i=>i.value.trim()).filter(Boolean);
-
-  if (!apiKey) { showError("Please enter your Riot API key."); return; }
-  if (names.length === 0) { showError("Enter at least one summoner name."); return; }
-
-  document.getElementById("error").style.display = "none";
-  document.getElementById("results").innerHTML = "";
-  document.getElementById("loading").style.display = "block";
-  document.getElementById("searchBtn").disabled = true;
-
-  const cards = [];
-  for (let i = 0; i < names.length; i++) {
-    document.getElementById("stepText").textContent = `Fetching ${names[i]} (${i+1}/${names.length})…`;
-    try {
-      const p = await fetchSummoner(names[i], apiKey, platform, routing);
-      cards.push(renderCard(p));
-    } catch(e) {
-      cards.push(`<div class="card"><div class="name" style="color:#f87171">${names[i]}</div><div style="font-size:13px;color:#f87171;margin-top:8px">${e.message}</div></div>`);
-    }
+const tlLoaded={};
+async function toggleTimeline(idx){
+  const wrap=document.getElementById(`tl-${idx}`);
+  wrap.classList.toggle("open");
+  if(!wrap.classList.contains("open")||tlLoaded[idx])return;
+  tlLoaded[idx]=true;
+  const p=window._players[idx];
+  try{
+    const details=await Promise.all(
+      p.matches.slice(0,5).map(m=>riotFetch(`https://${p.routing}.api.riotgames.com/lol/match/v5/matches/${m.matchId}/timeline`,p.apiKey))
+    );
+    const deathsByMinute={};
+    const killsByMinute={};
+    details.forEach((tl,gi)=>{
+      const pid=tl.metadata.participants.indexOf(p.puuid)+1;
+      tl.info.frames.forEach(frame=>{
+        const min=frame.timestamp/60000|0;
+        frame.events.forEach(ev=>{
+          if(ev.type==="CHAMPION_KILL"){
+            if(ev.victimId===pid){deathsByMinute[min]=(deathsByMinute[min]||0)+1;}
+            if(ev.killerId===pid){killsByMinute[min]=(killsByMinute[min]||0)+1;}
+          }
+        });
+      });
+    });
+    const maxMin=Math.max(...Object.keys(deathsByMinute).map(Number),...Object.keys(killsByMinute).map(Number),30);
+    const labels=Array.from({length:maxMin+1},(_,i)=>i);
+    const dData=labels.map(m=>deathsByMinute[m]||0);
+    const kData=labels.map(m=>killsByMinute[m]||0);
+    document.getElementById(`tl-loading-${idx}`).style.display="none";
+    const cw=document.getElementById(`tl-chart-wrap-${idx}`);
+    cw.style.display="block";
+    new Chart(document.getElementById(`tl-chart-${idx}`),{
+      type:"bar",
+      data:{labels:labels.map(l=>`${l}m`),datasets:[
+        {label:"Deaths",data:dData,backgroundColor:"rgba(248,113,113,0.7)",borderColor:"#f87171",borderWidth:1},
+        {label:"Kills",data:kData,backgroundColor:"rgba(52,211,153,0.7)",borderColor:"#34d399",borderWidth:1},
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:"#9ca3af",boxWidth:12,font:{size:11}}}},scales:{x:{ticks:{color:"#6b7280",font:{size:10},maxTicksLimit:15},grid:{color:"rgba(255,255,255,0.05)"}},y:{ticks:{color:"#6b7280",stepSize:1},grid:{color:"rgba(255,255,255,0.05)"},beginAtZero:true}}}
+    });
+  }catch(e){
+    document.getElementById(`tl-loading-${idx}`).textContent=`Could not load timeline: ${e.message}`;
   }
-
-  document.getElementById("loading").style.display = "none";
-  document.getElementById("searchBtn").disabled = false;
-  document.getElementById("results").innerHTML = cards.join("");
 }
 
-function showError(msg) {
-  const el = document.getElementById("error");
-  el.textContent = msg;
-  el.style.display = "block";
-}
+let chartInstances={};
+function destroyCharts(){Object.values(chartInstances).forEach(c=>c.destroy());chartInstances={};}
 
-function getTeams() {
-  try { return JSON.parse(localStorage.getItem("lol_teams") || "{}"); } catch { return {}; }
-}
-
-function saveTeams(teams) {
-  localStorage.setItem("lol_teams", JSON.stringify(teams));
-}
-
-function refreshTeamSelect() {
-  const sel = document.getElementById("teamSelect");
-  const teams = getTeams();
-  const current = sel.value;
-  sel.innerHTML = '<option value="">— select a team —</option>';
-  Object.keys(teams).forEach(name => {
-    const opt = document.createElement("option");
-    opt.value = name; opt.textContent = name;
-    if (name === current) opt.selected = true;
-    sel.appendChild(opt);
+function makeBarChart(id,labels,data,color,unit=""){
+  const ctx=document.getElementById(id);
+  if(!ctx)return;
+  chartInstances[id]=new Chart(ctx,{
+    type:"bar",
+    data:{labels,datasets:[{data,backgroundColor:COLORS.map(c=>c+"99"),borderColor:COLORS,borderWidth:1.5,borderRadius:4}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:v=>`${v.raw}${unit}`}}},scales:{x:{ticks:{color:"#9ca3af",font:{size:11}},grid:{display:false}},y:{ticks:{color:"#6b7280",font:{size:10}},grid:{color:"rgba(255,255,255,0.05)"},beginAtZero:true}}}
   });
 }
 
-function saveTeam() {
-  const name = document.getElementById("teamName").value.trim();
-  if (!name) { showError("Enter a team name before saving."); return; }
-  const names = [...document.querySelectorAll(".sname")].map(i => i.value.trim());
-  if (names.every(n => !n)) { showError("Enter at least one summoner name before saving."); return; }
-  const teams = getTeams();
-  teams[name] = names;
-  saveTeams(teams);
-  refreshTeamSelect();
-  document.getElementById("teamName").value = "";
-  document.getElementById("teamSelect").value = name;
-  document.getElementById("error").style.display = "none";
+function renderGraphs(players){
+  destroyCharts();
+  const labels=players.map(p=>p.displayName.split("#")[0]);
+  makeBarChart("chartCS",labels,players.map(p=>p.avgCSPM),"","");
+  makeBarChart("chartKDA",labels,players.map(p=>p.avgKDA),"","");
+  makeBarChart("chartWR",labels,players.map(p=>p.winRate),"","%");
+  makeBarChart("chartKP",labels,players.map(p=>p.avgKP),"","%");
+  makeBarChart("chartVS",labels,players.map(p=>p.avgVS),"","");
+  makeBarChart("chartDeaths",labels,players.map(p=>p.avgDeaths),"","");
 }
 
-function loadTeam() {
-  const name = document.getElementById("teamSelect").value;
-  if (!name) return;
-  const teams = getTeams();
-  const names = teams[name] || [];
-  document.querySelectorAll(".sname").forEach((inp, i) => { inp.value = names[i] || ""; });
+async function fetchAll(){
+  const apiKey=document.getElementById("apiKey").value.trim();
+  const [platform,routing]=document.getElementById("region").value.split("|");
+  const names=[...document.querySelectorAll(".sname")].map(i=>i.value.trim()).filter(Boolean);
+  if(!apiKey){showError("Please enter your Riot API key.");return;}
+  if(!names.length){showError("Enter at least one summoner name.");return;}
+  hideError();
+  document.getElementById("output").style.display="none";
+  document.getElementById("loading").style.display="block";
+  document.getElementById("searchBtn").disabled=true;
+  Object.keys(tlLoaded).forEach(k=>delete tlLoaded[k]);
+
+  const players=[];
+  for(let i=0;i<names.length;i++){
+    document.getElementById("stepText").textContent=`Fetching ${names[i]} (${i+1}/${names.length})…`;
+    try{
+      const p=await fetchSummoner(names[i],apiKey,platform,routing);
+      p.apiKey=apiKey; p.platform=platform; p.routing=routing;
+      players.push({...p,_error:false});
+    }catch(e){
+      players.push({displayName:names[i],_error:true,_msg:e.message});
+    }
+  }
+
+  window._players=players;
+  document.getElementById("loading").style.display="none";
+  document.getElementById("searchBtn").disabled=false;
+
+  const grid=document.getElementById("cardsGrid");
+  grid.innerHTML=players.map((p,i)=>p._error
+    ?`<div class="card"><div class="pname" style="color:#f87171">${p.displayName}</div><div style="font-size:13px;color:#f87171;margin-top:8px">${p._msg}</div></div>`
+    :renderCard(p,i)
+  ).join("");
+
+  const goodPlayers=players.filter(p=>!p._error);
+  if(goodPlayers.length>0)renderGraphs(goodPlayers);
+  document.getElementById("output").style.display="block";
 }
 
-function deleteTeam() {
-  const name = document.getElementById("teamSelect").value;
-  if (!name) return;
-  const teams = getTeams();
-  delete teams[name];
-  saveTeams(teams);
-  refreshTeamSelect();
+// Teams storage
+function getTeams(){try{return JSON.parse(localStorage.getItem("lol_teams")||"{}");}catch{return{};}}
+function saveTeamsLS(t){localStorage.setItem("lol_teams",JSON.stringify(t));}
+function refreshTeamSelect(){
+  const sel=document.getElementById("teamSelect");
+  const cur=sel.value; const t=getTeams();
+  sel.innerHTML='<option value="">— select a team —</option>';
+  Object.keys(t).forEach(n=>{const o=document.createElement("option");o.value=n;o.textContent=n;if(n===cur)o.selected=true;sel.appendChild(o);});
 }
-
+function saveTeam(){
+  const name=document.getElementById("teamName").value.trim();
+  if(!name){showError("Enter a team name.");return;}
+  const names=[...document.querySelectorAll(".sname")].map(i=>i.value.trim());
+  if(names.every(n=>!n)){showError("Enter at least one summoner name.");return;}
+  const t=getTeams(); t[name]=names; saveTeamsLS(t); refreshTeamSelect();
+  document.getElementById("teamName").value="";
+  document.getElementById("teamSelect").value=name; hideError();
+}
+function loadTeam(){
+  const name=document.getElementById("teamSelect").value; if(!name)return;
+  const names=getTeams()[name]||[];
+  document.querySelectorAll(".sname").forEach((inp,i)=>{inp.value=names[i]||"";});
+}
+function deleteTeam(){
+  const name=document.getElementById("teamSelect").value; if(!name)return;
+  const t=getTeams(); delete t[name]; saveTeamsLS(t); refreshTeamSelect();
+}
 refreshTeamSelect();
 </script>
 </body>
