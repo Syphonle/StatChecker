@@ -169,15 +169,36 @@ function tierColor(t){
   return"#a78bfa";
 }
 
+function detectRole(roleBreakdown){
+  if(!roleBreakdown||!roleBreakdown.length)return"OTHER";
+  return roleBreakdown.sort((a,b)=>b.games-a.games)[0].role||"OTHER";
+}
+
 function calcScore(p){
-  // Weighted score out of 100
+  const role=detectRole(p.roleBreakdown);
   let s=0;
+  // Win rate — same for all roles (25pts)
   s+=Math.min(p.winRate/100*25,25);
+  // KDA — same for all roles (20pts)
   s+=Math.min((p.avgKDA/6)*20,20);
-  s+=Math.min((p.avgCSPM/8)*15,15);
-  s+=Math.min((p.avgKP/100)*15,15);
-  s+=Math.min((p.avgDPM/1200)*15,15);
-  s+=Math.min((p.avgVS/60)*10,10);
+
+  if(role==="UTILITY"){
+    // Support: skip CS, double vision, add KP
+    s+=Math.min((p.avgVS/80)*25,25);   // vision heavily weighted (25pts)
+    s+=Math.min((p.avgKP/100)*20,20);  // KP important for supports (20pts)
+    s+=Math.min((p.avgDPM/600)*10,10); // lower DPM benchmark (10pts)
+  } else if(role==="JUNGLE"){
+    s+=Math.min((p.avgCSPM/5.5)*12,12); // lower CS benchmark for jungle (12pts)
+    s+=Math.min((p.avgKP/100)*18,18);   // KP very important for junglers (18pts)
+    s+=Math.min((p.avgDPM/1000)*10,10); // DPM (10pts)
+    s+=Math.min((p.avgVS/40)*10,10);    // vision (10pts)
+  } else {
+    // Top / Mid / Bot — standard scoring
+    s+=Math.min((p.avgCSPM/8)*15,15);
+    s+=Math.min((p.avgKP/100)*15,15);
+    s+=Math.min((p.avgDPM/1200)*15,15);
+    s+=Math.min((p.avgVS/40)*10,10);
+  }
   return Math.round(s);
 }
 
@@ -312,7 +333,7 @@ async function fetchSummoner(name,apiKey,platform,routing){
   const avgVS=Math.round(tVS/n);
   const avgDPM=Math.round(tDPM/n);
 
-  const score=calcScore({winRate:Math.round((wins/n)*100),avgKDA,avgCSPM,avgKP,avgDPM,avgVS});
+  const score=calcScore({winRate:Math.round((wins/n)*100),avgKDA,avgCSPM,avgKP,avgDPM,avgVS,roleBreakdown});
 
   return{
     displayName,level:summonerData.summonerLevel,profileIconId:summonerData.profileIconId,
