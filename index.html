@@ -220,17 +220,19 @@ function calcScore(p){
   const role=detectRole(p.roleBreakdown);
   let s=0;
   s+=Math.min(p.winRate/100*25,25);
-  s+=Math.min((p.avgKDA/4.5)*20,20);
   if(role==="UTILITY"){
-    s+=Math.min((p.avgVS/65)*25,25);
-    s+=Math.min((p.avgKP/75)*20,20);
-    s+=Math.min((p.avgDPM/600)*10,10);
+    s+=Math.min((p.avgKDA/3.5)*20,20);
+    s+=Math.min((p.avgVS/55)*25,25);
+    s+=Math.min((p.avgKP/55)*20,20);
+    s+=Math.min((p.avgDPM/500)*10,10);
   }else if(role==="JUNGLE"){
+    s+=Math.min((p.avgKDA/4.5)*20,20);
     s+=Math.min((p.avgCSPM/5.0)*12,12);
     s+=Math.min((p.avgKP/70)*18,18);
     s+=Math.min((p.avgDPM/1000)*10,10);
     s+=Math.min((p.avgVS/35)*10,10);
   }else{
+    s+=Math.min((p.avgKDA/4.5)*20,20);
     s+=Math.min((p.avgCSPM/7.0)*15,15);
     s+=Math.min((p.avgKP/75)*15,15);
     s+=Math.min((p.avgDPM/1000)*15,15);
@@ -240,10 +242,10 @@ function calcScore(p){
 }
 
 function scoreGrade(s){
-  if(s>=85)return{g:"S",col:"#fbbf24",bg:"rgba(251,191,36,0.15)"};
-  if(s>=70)return{g:"A",col:"#34d399",bg:"rgba(52,211,153,0.15)"};
-  if(s>=55)return{g:"B",col:"#60a5fa",bg:"rgba(96,165,250,0.15)"};
-  if(s>=40)return{g:"C",col:"#9ca3af",bg:"rgba(156,163,175,0.15)"};
+  if(s>=80)return{g:"S",col:"#fbbf24",bg:"rgba(251,191,36,0.15)"};
+  if(s>=65)return{g:"A",col:"#34d399",bg:"rgba(52,211,153,0.15)"};
+  if(s>=50)return{g:"B",col:"#60a5fa",bg:"rgba(96,165,250,0.15)"};
+  if(s>=35)return{g:"C",col:"#9ca3af",bg:"rgba(156,163,175,0.15)"};
   return{g:"D",col:"#f87171",bg:"rgba(248,113,113,0.15)"};
 }
 
